@@ -99,16 +99,8 @@ fn download() -> Result<(), Box<std::error::Error>> {
         Identity::from_pkcs12_der(&cert_raw, "switch")?
     };
 
-    let cert = {
-        let mut cert_file = File::open("nincert.pem")?;
-        let mut cert_raw = Vec::new();
-        cert_file.read_to_end(&mut cert_raw)?;
-        Certificate::from_pem(&cert_raw)?
-    };
-
     let client = Client::builder()
         .identity(client_cert)
-        .add_root_certificate(cert)
         .danger_disable_certificate_validation_entirely()
         .build()?;
 
