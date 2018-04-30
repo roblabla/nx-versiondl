@@ -1,0 +1,9 @@
+[package]
+name = "versionlist"
+version = "0.1.0"
+authors = ["roblabla <unfiltered@roblab.la>"]
+
+[dependencies]
+reqwest = { git = "https://github.com/roblabla/reqwest", branch = "pr-198" }
+nom = "3.2.1"
+hex = "0.3.2"
