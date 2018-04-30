@@ -7,7 +7,7 @@ use nom::*;
 use std::fs::{OpenOptions, File};
 use std::io::{ErrorKind, Read};
 use std::collections::HashMap;
-use reqwest::{Client, Identity, Certificate};
+use reqwest::{Client, Identity};
 use std::process::Command;
 
 fn main() {
