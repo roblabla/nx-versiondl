@@ -116,7 +116,7 @@ fn download() -> Result<(), Box<std::error::Error>> {
         println!("Handling version {}", version_str);
         std::fs::create_dir(version_str).or_else(|e| if e.kind() == ErrorKind::AlreadyExists { Ok(()) } else { Err(e) })?;
 
-        download_meta(version_num, &client, version_str)?;
+        download_version_meta(version_num, &client, version_str)?;
 
         // Parse the damn fella.
         let output = Command::new("hactool").args(&[format!("{}/0100000000000816.nca", version_str), format!("--section0dir={}/0100000000000816.nca.extracted", version_str)]).output()?;
@@ -140,7 +140,7 @@ fn download() -> Result<(), Box<std::error::Error>> {
     Ok(())
 }
 
-fn download_meta(version_num: u64, client: &Client, version_str: &str) -> Result<(), Box<std::error::Error>> {
+fn download_version_meta(version_num: u64, client: &Client, version_str: &str) -> Result<(), Box<std::error::Error>> {
     let mut file = match OpenOptions::new().write(true).create_new(true).open(format!("{}/0100000000000816.nca", version_str)) {
         Ok(f) => f,
         Err(e) => if e.kind() == ErrorKind::AlreadyExists { return Ok(()) }
@@ -165,17 +165,23 @@ fn get_meta_type(ty: u8) -> &'static str {
     }
 }
 
-fn get_title(record: MetaRecord, client: &Client, version_str: &str) -> Result<(), Box<std::error::Error>> {
-    println!("\tHandling title {:016x}", record.title_id);
-    let mut file = match OpenOptions::new().write(true).create_new(true).open(format!("{}/{:016x}.cnmt.nca", version_str, record.title_id)) {
+fn download_title_meta(title_id: u64, title_version: u32, client: &Client, version_str: &str) -> Result<(), Box<std::error::Error>> {
+    let mut file = match OpenOptions::new().write(true).create_new(true).open(format!("{}/{:016x}.cnmt.nca", version_str, title_id)) {
         Ok(f) => f,
         Err(e) => if e.kind() == ErrorKind::AlreadyExists { return Ok(()) }
                   else                                    { return Err(Box::new(e)) }
     };
 
-    let mut req = client.get(&format!("https://atumn.hac.lp1.d4c.nintendo.net/t/a/{:016x}/{}?device_id={}", record.title_id, record.title_version, "0000000000000000"));
+    let mut req = client.get(&format!("https://atumn.hac.lp1.d4c.nintendo.net/t/a/{:016x}/{}?device_id={}", title_id, title_version, std::env::args().nth(1).unwrap_or("0000000000000000".to_string())));
     let mut response = req.send()?;
     std::io::copy(&mut response, &mut file)?;
+    Ok(())
+}
+
+fn get_title(record: MetaRecord, client: &Client, version_str: &str) -> Result<(), Box<std::error::Error>> {
+    println!("\tHandling title {:016x}", record.title_id);
+
+    download_title_meta(record.title_id, record.title_version, client, version_str)?;
 
     // Parse it again.
     let output = Command::new("hactool").args(&[format!("{}/{:016x}.cnmt.nca", version_str, record.title_id), format!("--section0dir={}/{:016x}.cnmt.nca.extracted", version_str, record.title_id)]).output()?;
