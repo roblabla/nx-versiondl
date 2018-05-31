@@ -91,6 +91,7 @@ fn download() -> Result<(), Box<std::error::Error>> {
     versions.insert(335544750,  "5.0.0");
     versions.insert(335609886,  "5.0.1");
     versions.insert(335675432,  "5.0.2");
+    versions.insert(336592976,  "5.1.0");
 
     let client_cert = {
         let mut cert_file = File::open("nx_tls_client_cert.pfx")?;
